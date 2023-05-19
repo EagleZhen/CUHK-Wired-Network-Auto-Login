@@ -4,6 +4,15 @@ import socket
 from time import sleep
 from datetime import datetime
 
+def is_internet_connected():
+    try:
+        # Attempt to establish a connection to the Google DNS server (8.8.8.8) on port 53, with a timeout of 3 seconds
+        socket.create_connection(("8.8.8.8", 53), timeout=3)
+        return True
+    except OSError:
+        pass
+    return False
+
 login_url = "https://securelogin.net.cuhk.edu.hk/cgi-bin/login"
 
 # Load the credentials from the json file
@@ -15,15 +24,6 @@ form_data = {
 	"password": credentials["password"],
 	"cmd": "authenticate"
 }
-
-def is_internet_connected():
-    try:
-        # Attempt to establish a connection to the Google DNS server (8.8.8.8) on port 53, with a timeout of 3 seconds
-        socket.create_connection(("8.8.8.8", 53), timeout=3)
-        return True
-    except OSError:
-        pass
-    return False
 
 # Keep monitoring the network status with an interval of 5 seconds
 interval = 10
@@ -42,5 +42,7 @@ while True:
 			print("Login successful!")
 		else:
 			print(f"Login failed. Retry {interval} seconds later.")
+	else:
+		print('Everything seems to be fine.')
 
 	sleep(interval)
