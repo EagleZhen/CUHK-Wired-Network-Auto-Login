@@ -27,6 +27,8 @@ form_data = {
 
 # Keep monitoring the network status with an interval of 5 seconds
 interval = 10
+print("Network monitoring started...")
+
 while True:
 	if (is_internet_connected()==False):
 		# Show the timestamps for the corresponding status code
@@ -42,7 +44,5 @@ while True:
 			print("Login successful!")
 		else:
 			print(f"Login failed. Retry {interval} seconds later.")
-	else:
-		print('Everything seems to be fine.')
 
 	sleep(interval)
