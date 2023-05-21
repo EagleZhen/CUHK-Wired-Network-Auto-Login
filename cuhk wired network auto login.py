@@ -13,6 +13,13 @@ def is_internet_connected():
         pass
     return False
 
+def print_message(message):
+	# Show the timestamps for the corresponding status code
+	current_datetime = datetime.now()
+	formatted_datetime = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
+	# Print timestamps with the message
+	print(formatted_datetime,"|",message)
+
 login_url = "https://securelogin.net.cuhk.edu.hk/cgi-bin/login"
 
 # Load the credentials from the json file
@@ -26,23 +33,20 @@ form_data = {
 }
 
 # Keep monitoring the network status with an interval of 5 seconds
-interval = 10
-print("Network monitoring started...")
-
+interval = 5
+print_message("Network monitoring started...")
 while True:
 	if (is_internet_connected()==False):
-		# Show the timestamps for the corresponding status code
-		current_datetime = datetime.now()
-		formatted_datetime = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
-		print(formatted_datetime,end=" | ")
+		print_message("Network disconnected.")
 
-		# Send the POST request
-		response = requests.post(login_url, data=form_data)
+		while (is_internet_connected()==False):
+			# Send the POST request
+			requests.post(login_url, data=form_data)
 
-		# Check the response
-		if response.status_code == 200:
-			print("Login successful!")
-		else:
-			print(f"Login failed. Retry {interval} seconds later.")
+			if (is_internet_connected()==True):
+				print_message("Login successful!")
+			else:
+				print_message(f"Login failed. Trying to reconnect after a few seconds...")
 
+	# Break between every netowrk status checking
 	sleep(interval)

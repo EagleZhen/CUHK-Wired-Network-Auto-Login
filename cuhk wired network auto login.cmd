@@ -1,0 +1,1 @@
+python "cuhk wired network auto login.py"
