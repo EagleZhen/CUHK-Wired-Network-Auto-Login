@@ -37,11 +37,13 @@ interval = 5
 print_message("Network monitoring started...")
 while True:
 	if (is_internet_connected()==False):
-		print_message("Network disconnected.")
+		print_message("Network disconnected. Trying to reconnect...")
 
 		while (is_internet_connected()==False):
 			# Send the POST request
 			requests.post(login_url, data=form_data)
+
+			sleep(5)
 
 			if (is_internet_connected()==True):
 				print_message("Login successful!")
