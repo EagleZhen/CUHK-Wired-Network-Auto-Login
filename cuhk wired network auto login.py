@@ -43,12 +43,12 @@ while True:
 			# Send the POST request
 			requests.post(login_url, data=form_data)
 
-			sleep(5)
-
 			if (is_internet_connected()==True):
 				print_message("Login successful!")
 			else:
 				print_message(f"Login failed. Trying to reconnect after a few seconds...")
+
+			sleep(interval)
 
 	# Break between every netowrk status checking
 	sleep(interval)
