@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "cuhk-wired-network-auto-login"
+version = "0.1.0"
+description = ""
+authors = ["Eagle Zhen <31062364+EagleZhen@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "cuhk_wired_network_auto_login"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.31.0"
+infi-systray = "^0.1.12"
+plyer = "^2.1.0"
+win11toast = "^0.32"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
