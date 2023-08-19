@@ -1,5 +1,6 @@
 import socket
 
+
 def is_internet_connected():
     try:
         # Attempt to resolve the Google DNS server
@@ -8,6 +9,7 @@ def is_internet_connected():
     except OSError:
         pass
     return False
+
 
 if is_internet_connected():
     print("Connected to the internet.")
