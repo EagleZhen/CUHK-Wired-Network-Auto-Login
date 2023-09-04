@@ -1,8 +1,8 @@
 import requests
 import json
 import socket
-from time import sleep
 from datetime import datetime, timedelta
+from win11toast import toast
 
 
 def is_internet_connected():
@@ -13,6 +13,7 @@ def is_internet_connected():
         socket.create_connection(("8.8.8.8", 53), timeout=3)
         return True
     except OSError:
+        print("OSError")
         pass
     return False
 
@@ -25,9 +26,6 @@ def print_message(message):
     print(formatted_datetime, "|", message)
 
 
-print_message("Login failed.      Trying to reconnect after a few seconds...")
-
-
 def get_expiry_time():
     expiry_time = datetime.now() + timedelta(hours=12)
 
@@ -36,6 +34,10 @@ def get_expiry_time():
 
 
 if __name__ == "__main__":
+    toast_title = "CUHK Wired Network Auto Login"
+
+    toast(toast_title, "Detected Network Change")
+
     login_url = "https://securelogin.net.cuhk.edu.hk/cgi-bin/login"
 
     # Load the credentials from the json file
@@ -48,32 +50,23 @@ if __name__ == "__main__":
         "cmd": "authenticate",
     }
 
-    # Keep monitoring the network status with an interval of 5 seconds
-    interval = 5
-    print_message("Network monitoring started...")
-    while True:
-        if not is_internet_connected():
-            print_message(
-                "Network disconnected. Trying to reconnect as"
-                f" <{form_data['user']}>..."
+    if not is_internet_connected():
+        toast(
+            toast_title,
+            "Network disconnected. Reconnecting as "
+            f"<{credentials['username']}>...",
+        )
+
+        # Send the POST request
+        requests.post(login_url, data=form_data)
+
+        if is_internet_connected():
+            toast(
+                toast_title,
+                "Login successful! It will expire at around "
+                f"{get_expiry_time()}",
             )
-
-            while not is_internet_connected():
-                # Send the POST request
-                requests.post(login_url, data=form_data)
-
-                if is_internet_connected():
-                    print_message(
-                        "Login successful! It will expire at around"
-                        f" {get_expiry_time()}"
-                    )
-                else:
-                    print_message(
-                        "Login failed. Trying to reconnect after a few"
-                        " seconds..."
-                    )
-
-                sleep(interval)
-
-        # Break between every netowrk status checking
-        sleep(interval)
+        else:
+            toast("Login failed.")
+    else:
+        toast("Network is already connected")
