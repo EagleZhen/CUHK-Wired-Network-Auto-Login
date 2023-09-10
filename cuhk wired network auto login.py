@@ -8,7 +8,7 @@ import threading
 
 def is_internet_connected():
     try:
-        # Attempt to establish a connection to
+        # attempt to establish a connection to
         # the Google DNS server (8.8.8.8) on port 53,
         # with a timeout of 3 seconds
         socket.create_connection(("8.8.8.8", 53), timeout=3)
@@ -18,19 +18,17 @@ def is_internet_connected():
     return False
 
 
-toast_title = "CUHK Wired Network Auto Login"
-
-
-def print_message(message, need_toast=True):
-    # Show the timestamps for the corresponding status code
+def print_message(message, toast_title=None, need_toast=True):
+    # show the timestamps for the corresponding status code
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
-    # Print timestamps with the message
+    # print timestamps with the message
     print(formatted_datetime, "|", message)
 
     if need_toast is True:
         threading.Thread(
             target=toast,
+            # need to provide a tuple for arguments to correctly unpack in the function
             args=(
                 toast_title,
                 message,
@@ -47,8 +45,9 @@ def get_expiry_time():
 
 
 if __name__ == "__main__":
-    # need to provide a tuple for arguments to correctly unpack in the function
-    print_message("Network change detected...", False)
+    default_toast_title = "CUHK ResNet Auto Renew Script"
+    print_message(message="Network change detected...Probably authentication expired", need_toast=False)
+
     login_url = "https://securelogin.net.cuhk.edu.hk/cgi-bin/login"
 
     # Load the credentials from the json file
@@ -62,14 +61,28 @@ if __name__ == "__main__":
     }
 
     if not is_internet_connected():
-        print_message(f"Network disconnected. Reconnecting as <{credentials['username']}>...")
+        print_message(
+            toast_title="Network disconnected",
+            message=f"Reconnecting as <{credentials['username']}>...",
+            need_toast=True,
+        )
 
         # Send the POST request
         requests.post(login_url, data=form_data)
 
         if is_internet_connected():
-            print_message(f"Login successful! It will expire at around {get_expiry_time()}.")
+            print_message(
+                toast_title="Login successful",
+                message=f"It will expire at around {get_expiry_time()}.",
+                need_toast=True,
+            )
         else:
-            print_message(f"Login failed.")
+            print_message(
+                toast_title=f"Login failed",
+                message=f"Please check your credentials in the json file.",
+                need_toast=True,
+            )
     else:
-        print_message("Network is already connected to Internet.")
+        print_message(
+            toast_title=default_toast_title, message="Network is already connected to Internet. :D", need_toast=True
+        )
