@@ -3,6 +3,7 @@ import json
 import socket
 from datetime import datetime, timedelta
 from win11toast import toast
+import threading
 
 
 def is_internet_connected():
@@ -13,17 +14,29 @@ def is_internet_connected():
         socket.create_connection(("8.8.8.8", 53), timeout=3)
         return True
     except OSError:
-        print("OSError")
         pass
     return False
 
 
-def print_message(message):
+toast_title = "CUHK Wired Network Auto Login"
+
+
+def print_message(message, need_toast=True):
     # Show the timestamps for the corresponding status code
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
     # Print timestamps with the message
     print(formatted_datetime, "|", message)
+
+    if need_toast is True:
+        threading.Thread(
+            target=toast,
+            args=(
+                toast_title,
+                message,
+            ),
+            kwargs={"duration": "short"},
+        ).start()
 
 
 def get_expiry_time():
@@ -34,10 +47,8 @@ def get_expiry_time():
 
 
 if __name__ == "__main__":
-    toast_title = "CUHK Wired Network Auto Login"
-
-    toast(toast_title, "Detected Network Change")
-
+    # need to provide a tuple for arguments to correctly unpack in the function
+    print_message("Network change detected...", False)
     login_url = "https://securelogin.net.cuhk.edu.hk/cgi-bin/login"
 
     # Load the credentials from the json file
@@ -51,22 +62,14 @@ if __name__ == "__main__":
     }
 
     if not is_internet_connected():
-        toast(
-            toast_title,
-            "Network disconnected. Reconnecting as "
-            f"<{credentials['username']}>...",
-        )
+        print_message(f"Network disconnected. Reconnecting as <{credentials['username']}>...")
 
         # Send the POST request
         requests.post(login_url, data=form_data)
 
         if is_internet_connected():
-            toast(
-                toast_title,
-                "Login successful! It will expire at around "
-                f"{get_expiry_time()}",
-            )
+            print_message(f"Login successful! It will expire at around {get_expiry_time()}.")
         else:
-            toast("Login failed.")
+            print_message(f"Login failed.")
     else:
-        toast("Network is already connected")
+        print_message("Network is already connected to Internet.")
