@@ -1,6 +1,7 @@
 import requests
 import json
 import socket
+from time import sleep
 from datetime import datetime, timedelta
 from win11toast import toast
 import threading
@@ -46,8 +47,6 @@ def get_expiry_time():
 
 if __name__ == "__main__":
     default_toast_title = "CUHK ResNet Auto Renew Script"
-    print_message(message="Network change detected...Probably authentication expired", need_toast=False)
-
     login_url = "https://securelogin.net.cuhk.edu.hk/cgi-bin/login"
 
     # Load the credentials from the json file
@@ -60,29 +59,40 @@ if __name__ == "__main__":
         "cmd": "authenticate",
     }
 
-    if not is_internet_connected():
-        print_message(
-            toast_title="Network disconnected",
-            message=f"Reconnecting as <{credentials['username']}>...",
-            need_toast=True,
-        )
-
-        # Send the POST request
-        requests.post(login_url, data=form_data)
-
-        if is_internet_connected():
+    cnt = 0
+    while True:
+        if not is_internet_connected():
             print_message(
-                toast_title="Login successful",
-                message=f"It will expire at around {get_expiry_time()}.",
+                toast_title="Network disconnected",
+                message=f"Reconnecting as <{credentials['username']}>...",
                 need_toast=True,
             )
+
+            response = requests.post(login_url, data=form_data)
+            # print (response.text)
+
+            if is_internet_connected():
+                print_message(
+                    toast_title="Login successful",
+                    message=f"It will expire at around {get_expiry_time()}.",
+                    need_toast=True,
+                )
+            else:
+                print_message(
+                    toast_title=f"Login failed",
+                    message=f"Please check your credentials in the json file.",
+                    need_toast=True,
+                )
         else:
-            print_message(
-                toast_title=f"Login failed",
-                message=f"Please check your credentials in the json file.",
-                need_toast=True,
-            )
-    else:
-        print_message(
-            toast_title=default_toast_title, message="Network is already connected to Internet. :D", need_toast=True
-        )
+            cnt += 1
+            # print the network status every 1 minute
+            if cnt == 12:
+                print_message(
+                    toast_title=default_toast_title,
+                    message="Network is already connected to Internet. :D",
+                    need_toast=False,
+                )
+                cnt=0
+                
+            # monitor the network status every 5 seconds
+            sleep(5)
