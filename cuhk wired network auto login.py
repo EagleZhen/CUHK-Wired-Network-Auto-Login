@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from win11toast import toast
 import threading
 
+log = open("credential/log.txt","a")
 
 def is_internet_connected():
     try:
@@ -25,6 +26,7 @@ def print_message(message, toast_title=None, need_toast=True):
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
     # print timestamps with the message
     print(formatted_datetime, "|", message)
+    log.write(formatted_datetime + " | " + message + "\n")
 
     if need_toast is True:
         threading.Thread(
@@ -68,8 +70,15 @@ if __name__ == "__main__":
                 need_toast=True,
             )
 
-            response = requests.post(login_url, data=form_data)
-            # print (response.text)
+
+            try:
+                response = requests.post(login_url, data=form_data)
+            except requests.exceptions.RequestException as e:
+                print_message(
+                    toast_title="Request Error",
+                    message=f"Request Error: {e}",
+                    need_toast=False,
+                )
 
             if is_internet_connected():
                 print_message(
