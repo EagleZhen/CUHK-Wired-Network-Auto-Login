@@ -3,10 +3,8 @@ import json
 import socket
 from time import sleep
 from datetime import datetime, timedelta
-from win11toast import toast
 import threading
 
-log = open("credential/log.txt","a")
 
 def is_internet_connected():
     try:
@@ -20,24 +18,15 @@ def is_internet_connected():
     return False
 
 
-def print_message(message, toast_title=None, need_toast=True):
+def print_message(message):
     # show the timestamps for the corresponding status code
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
     # print timestamps with the message
     print(formatted_datetime, "|", message)
-    log.write(formatted_datetime + " | " + message + "\n")
 
-    if need_toast is True:
-        threading.Thread(
-            target=toast,
-            # need to provide a tuple for arguments to correctly unpack in the function
-            args=(
-                toast_title,
-                message,
-            ),
-            kwargs={"duration": "short"},
-        ).start()
+    with open("credential/log.txt", "a") as log:
+        log.write(formatted_datetime + " | " + message + "\n")
 
 
 def get_expiry_time():
@@ -46,6 +35,7 @@ def get_expiry_time():
     expiry_time_str = expiry_time.strftime("%Y-%m-%d %H:%M:%S")
     return expiry_time_str
 
+sleep_interval = 5
 
 if __name__ == "__main__":
     default_toast_title = "CUHK ResNet Auto Renew Script"
@@ -64,44 +54,25 @@ if __name__ == "__main__":
     cnt = 0
     while True:
         if not is_internet_connected():
-            print_message(
-                toast_title="Network disconnected",
-                message=f"Reconnecting as <{credentials['username']}>...",
-                need_toast=True,
-            )
-
+            print_message(message=f"Reconnecting as <{credentials['username']}>...")
 
             try:
                 response = requests.post(login_url, data=form_data)
             except requests.exceptions.RequestException as e:
-                print_message(
-                    toast_title="Request Error",
-                    message=f"Request Error: {e}",
-                    need_toast=False,
-                )
+                print_message(message=f"Request Error:\n{e}\n")
 
             if is_internet_connected():
-                print_message(
-                    toast_title="Login successful",
-                    message=f"It will expire at around {get_expiry_time()}.",
-                    need_toast=True,
-                )
+                sleep_interval = 5 # restore the sleep interval to 5 seconds
+                print_message(message=f"Login succeess: It will expire at around {get_expiry_time()}.")
             else:
-                print_message(
-                    toast_title=f"Login failed",
-                    message=f"Please check your credentials in the json file.",
-                    need_toast=True,
-                )
+                sleep_interval = 1 # allow faster retry to reconnect the network as fast as possible
+                print_message(message=f"Login failed: Retry in 1 second.")
         else:
             cnt += 1
             # print the network status every 1 minute
             if cnt == 12:
-                print_message(
-                    toast_title=default_toast_title,
-                    message="Network is already connected to Internet. :D",
-                    need_toast=False,
-                )
-                cnt=0
-                
-            # monitor the network status every 5 seconds
-            sleep(5)
+                print_message(message="Network is already connected to Internet. :D")
+                cnt = 0
+
+        # monitor the network status every 5 seconds
+        sleep(sleep_interval)
