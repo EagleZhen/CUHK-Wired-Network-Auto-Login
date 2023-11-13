@@ -18,15 +18,16 @@ def is_internet_connected():
     return False
 
 
-def print_message(message):
+def print_message(message, write_to_log=True):
     # show the timestamps for the corresponding status code
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
     # print timestamps with the message
     print(formatted_datetime, "|", message)
 
-    with open("credential/log.txt", "a") as log:
-        log.write(formatted_datetime + " | " + message + "\n")
+    if write_to_log:
+        with open("credential/log.txt", "a") as log:
+            log.write(formatted_datetime + " | " + message + "\n")
 
 
 def get_expiry_time():
@@ -71,7 +72,7 @@ if __name__ == "__main__":
             cnt += 1
             # print the network status every 1 minute
             if cnt == 12:
-                print_message(message="Network is already connected to Internet. :D")
+                print_message(message="Network is already connected to Internet. :D", write_to_log=False)
                 cnt = 0
 
         # monitor the network status every 5 seconds
