@@ -3,7 +3,6 @@ import json
 import socket
 from time import sleep
 from datetime import datetime, timedelta
-import threading
 
 
 def is_internet_connected():
@@ -39,7 +38,8 @@ def get_expiry_time():
 sleep_interval = 5
 
 if __name__ == "__main__":
-    default_toast_title = "CUHK ResNet Auto Renew Script"
+    print_message(message="Start monitoring the network status...")
+    
     login_url = "https://securelogin.net.cuhk.edu.hk/cgi-bin/login"
 
     # Load the credentials from the json file
